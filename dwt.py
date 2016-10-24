@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import pandas as pd
-
-from skimage import exposure
-from skimage.morphology import skeletonize
 
 def find_minimum(dwt, i, j):
     list = []
@@ -51,42 +47,12 @@ def dwt_distances(image, reference_rows_summed, reference_columns_summed, refere
 def compute_dwt_label(dwt_distances):
     return sorted(dwt_distances.items(), key = lambda x: x[1])[0][0]
 
-data_frame = pd.read_csv('~/Documents/digits/train.csv')
-
-#extract everything except label and turns list of pixels into matrix
-def extract_matrix(row, rows_no, columns_no):
-    return np.array(row[1:]).reshape(rows_no, columns_no)
+def dwt_classifier(matrix, training_data):
+    distances = dwt_distances(matrix, training_data.rows_summed, training_data.columns_summed, training_data.labels)
+    return sorted(distances.items(), key = lambda x: x[1])[0][0]    
     
-def extract_array(row):
-    return np.array(row[1:])
-
-def extract_label(row):
-    return row[0]
     
-matrices = list(map(lambda row: extract_matrix(row, 28, 28), data_frame.values))
-matrices_float = list(map(lambda matrix: matrix.astype(float), matrices))
-matrices_rescaled = list(map(exposure.rescale_intensity, matrices_float))
-matrices_thresholded = list(map(lambda matrix: matrix > 0.5, matrices_rescaled))
-matrices_skeletonized = list(map(skeletonize, matrices_thresholded))
-arrays = list(map(extract_array, data_frame.values))
-labels = list(map(extract_label, data_frame.values))
 
-rows_summed = list(map(lambda matrix: matrix.sum(axis=1), matrices_skeletonized))
-columns_summed = list(map(lambda matrix: matrix.sum(axis=0), matrices_skeletonized))
-
-correct = 0
-errors = []
-for i in range(1000, 1200):
-    print(i)
-    distances = dwt_distances(matrices_skeletonized[i], rows_summed[0:200], columns_summed[0:200], labels[0:200])
-    if labels[i] == compute_dwt_label(distances):
-        correct = correct + 1
-    else:
-        errors.append(compute_dwt_label(distances))        
-        
-print(float(correct) / float(200))
-for i in range(10):
-    print(str(i) + ": " + str(errors.count(i)))
     
 
 
