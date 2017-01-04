@@ -4,12 +4,8 @@ import numpy as np
 import pandas as pd
 from functools import partial
 from argparse import ArgumentParser
-from skimage.transform import SimilarityTransform, warp
+from skimage.transform import SimilarityTransform, warp, rotate
 from data_loader import transform_data_frame
-
-#data_frame = load_data_frame('~/Documents/digits/train.csv')
-
-#data = transform_data_frame(data_frame)
 
 np.random.seed(1)
 
@@ -20,6 +16,13 @@ def jitter_image(image, sigma):
         
 def jitter_images(images, sigma):
     return list(map(partial(jitter_image, sigma=sigma), images)) 
+
+def rotate_image(image, sigma):
+    angle = np.random.normal(0, sigma)
+    return rotate(image, angle)
+    
+def rotate_images(images, sigma):
+    return list(map(partial(rotate_image, sigma=sigma), images))
     
 def create_df(images, labels):
     images_reshaped = list(map(lambda image: image.reshape(784), images))
@@ -27,22 +30,6 @@ def create_df(images, labels):
     df = pd.DataFrame(data = images_with_labels)
     return df
     
-#jittered_images = jitter_images(data.matrices_float)
-#df_jittered = create_df(jittered_images, data.labels)
-
-#probability = 0.025    
-#change_pixel = lambda pixel: 0 if np.random.random() < probability else pixel 
-#change_pixel_vectorized = np.vectorize(change_pixel)    
-#noised_images = list(map(change_pixel_vectorized, data.matrices_float))
-#df_noised = create_df(noised_images, data.labels)
-
-#df_as_arrays = list(map(lambda row: np.array(row), data_frame.values))
-#df = pd.DataFrame(data = df_as_arrays)
-
-#df = df.append(df_jittered)
-#df = df.append(df_noised)
-#df.to_csv('extended.csv', index=False)
-
 def build_args_parser():
     parser = ArgumentParser(description="Data generator")
     parser.add_argument('--input', help='Path of the file with training data')
@@ -51,6 +38,8 @@ def build_args_parser():
     parser.add_argument('--sigma', help='Sigma of the jitter', type=float)
     parser.add_argument('--noise', help='How many noised images to generate - multiplier', type=int)
     parser.add_argument('--probability', help='Probability of changing single pixel', type=float)
+    parser.add_argument('--rotate', help='How many rotated images to generate - multiplier', type=int)    
+    parser.add_argument('--angle', help='Standard deviation of rotation in degrees', type=float)
     return parser
 
 def cli(cli_args):
@@ -73,6 +62,11 @@ def cli(cli_args):
                 noised_images = list(map(change_pixel_vectorized, data.matrices_float))
                 df_noised = create_df(noised_images, data.labels)  
                 df = df.append(df_noised)
+        if args.rotate and args.angle:
+            for i in range(args.rotate):
+                rotated_images = rotate_images(data.matrices_float, args.angle)
+                df_rotated = create_df(rotated_images, data.labels)
+                df = df.append(df_rotated)
         df.to_csv(args.output, index=False)
     else:
         parser.print_usage()

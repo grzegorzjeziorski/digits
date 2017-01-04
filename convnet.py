@@ -1,4 +1,5 @@
 import sys
+import time
 import pandas as pd
 
 from keras.layers.core import Flatten
@@ -99,6 +100,26 @@ def model3():
     model.add(Dense(10, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
+    
+def model4():
+    model = Sequential()
+    model.add(Convolution2D(128, 3, 3, border_mode='same', input_shape=(1, 28, 28), activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Convolution2D(128, 3, 3, border_mode='same', input_shape=(1, 28, 28), activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Convolution2D(128, 3, 3, border_mode='same', input_shape=(1, 28, 28), activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Convolution2D(128, 3, 3, border_mode='same', input_shape=(1, 28, 28), activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dropout(0.3))
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(10, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
 
 def build_args_parser():
     parser = ArgumentParser(description="Data generator")
@@ -111,8 +132,9 @@ def cli(cli_args):
     parser = build_args_parser()
     args = parser.parse_args(cli_args)
     if args.train and args.test:
-        models = [model0(), model1(), model2(), model3()]
-        model = models[args.model]
+        start = time.time()
+        models = [model0(), model1(), model2(), model3(), model4()]
+        model = models[args.model - 1]
         train_df = pd.read_csv(args.train)
         test_df = pd.read_csv(args.test)
         train_matrices = train_df.as_matrix()[:, 1:]
@@ -128,6 +150,8 @@ def cli(cli_args):
         model.fit(train_matrices, train_labels, validation_data=(test_matrices, test_labels), nb_epoch=10, batch_size=200, verbose=100)
         scores = model.evaluate(test_matrices, test_labels, verbose=0)
         print("Baseline Error: %.2f%%" % (100 - scores[1] * 100))
+        end = time.time()
+        print("time: %.2f%% ms" % (end - start))
     else:
         parser.print_usage()
 
