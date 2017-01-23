@@ -40,6 +40,7 @@ def build_args_parser():
     parser.add_argument('--probability', help='Probability of changing single pixel', type=float)
     parser.add_argument('--rotate', help='How many rotated images to generate - multiplier', type=int)    
     parser.add_argument('--angle', help='Standard deviation of rotation in degrees', type=float)
+    parser.add_argument('--preserve', help='Preserve input', type=bool)    
     return parser
 
 def cli(cli_args):
@@ -49,7 +50,10 @@ def cli(cli_args):
         input_df = pd.read_csv(args.input)
         data = transform_data_frame(input_df)
         df_as_arrays = list(map(lambda row: np.array(row), input_df.values))
-        df = pd.DataFrame(data = df_as_arrays)
+        if args.preserve:
+            df = pd.DataFrame(data = df_as_arrays)
+        else:
+            df = pd.DataFrame()
         if args.jitter and args.sigma:
             for i in range(args.jitter):
                 jittered_images = jitter_images(data.matrices_float, args.sigma)
