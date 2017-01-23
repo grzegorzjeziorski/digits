@@ -83,7 +83,7 @@ def cli(cli_args):
         test_matrices = test_matrices / 255.0
         train_labels = np_utils.to_categorical(train_labels)
         test_labels = np_utils.to_categorical(test_labels)
-        model.fit(train_matrices, train_labels, validation_data=(test_matrices, test_labels), nb_epoch=10, batch_size=200, verbose=100)
+        model.fit(train_matrices, train_labels, validation_data=(test_matrices, test_labels), nb_epoch=20, batch_size=200, verbose=1)
         scores = model.evaluate(test_matrices, test_labels, verbose=0)
         print("Baseline Error: %.2f%%" % (100 - scores[1] * 100))
         end = time.time()
