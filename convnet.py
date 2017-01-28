@@ -88,6 +88,23 @@ def model4():
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
+def model5():
+    model = Sequential()
+    model.add(Convolution2D(128, 5, 5, border_mode='same', input_shape=(1, 28, 28), activation='relu'))
+    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
+    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(10, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
 def build_args_parser():
     parser = ArgumentParser(description="Data generator")
     parser.add_argument('--model', help='Model to test', type=int)
@@ -100,7 +117,7 @@ def cli(cli_args):
     args = parser.parse_args(cli_args)
     if args.train and args.test:
         start = time.time()
-        models = [model0(), model1(), model2(), model3(), model4()]
+        models = [model0(), model1(), model2(), model3(), model4(), model5()]
         model = models[args.model - 1]
         train_df = pd.read_csv(args.train)
         test_df = pd.read_csv(args.test)
@@ -118,7 +135,7 @@ def cli(cli_args):
         scores = model.evaluate(test_matrices, test_labels, verbose=0)
         print("Baseline Error: %.4f%%" % (100 - scores[1] * 100))
         end = time.time()
-        print("time: %.2f% ms" % (end - start))
+        print("time: %.2f ms" % (end - start))
     else:
         parser.print_usage()
 
